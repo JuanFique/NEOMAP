@@ -3,8 +3,6 @@ import {
   BLOQUES,
   BLOQUE_BY_ID,
   COMPLEJO,
-  CORREDOR_A,
-  PLAZA_ENTRADA,
   VISTAS,
   zonasDePiso,
   type Pt,
@@ -46,22 +44,19 @@ export function CoordinatePicker({ bloque, piso, x, y, color, onPick }: Props) {
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-[#E3ECD9]">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-[#DCE8CF]">
       <svg
         ref={svgRef}
         viewBox={`${vista.x0} ${vista.y0} ${vista.x1 - vista.x0} ${vista.y1 - vista.y0}`}
-        className="block w-full cursor-crosshair"
+        className="mx-auto block max-h-[26rem] w-full cursor-crosshair"
         onClick={onClick}
         role="img"
         aria-label={`Plano del Bloque ${bloque}, ${piso}. Haz clic para ubicar el espacio.`}
       >
         {info.zona === 'complejo' ? (
-          <polygon points={pts(COMPLEJO)} fill="#EFECE6" stroke="#D3CABA" strokeWidth={0.3} />
+          <polygon points={pts(COMPLEJO)} fill="#F1E9DF" stroke="#D3CABA" strokeWidth={0.3} />
         ) : (
-          <>
-            <polygon points={pts(CORREDOR_A)} fill="#E4DDD0" />
-            <polygon points={pts(PLAZA_ENTRADA)} fill="#EFECE6" />
-          </>
+          <rect x={vista.x0} y={vista.y0} width={vista.x1 - vista.x0} height={vista.y1 - vista.y0} fill="#E3C2A8" />
         )}
 
         {vecinos.flatMap((b) =>
@@ -70,7 +65,7 @@ export function CoordinatePicker({ bloque, piso, x, y, color, onPick }: Props) {
           )),
         )}
         {info.parts.map((part) => (
-          <polygon key={part.id} points={pts(part.poly)} fill="#FFFFFF" stroke="#2563EB" strokeWidth={0.7} />
+          <polygon key={part.id} points={pts(part.poly)} fill="#FFFFFF" stroke="#043074" strokeWidth={0.7} />
         ))}
 
         {zonas.map((zona) => {

@@ -35,15 +35,15 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-[#E3ECD9] p-4">
-      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+    <main className="flex min-h-[100dvh] items-center justify-center bg-umng-blue bg-[radial-gradient(circle_at_top,#0A4AA8_0%,#043074_45%,#02183A_100%)] p-4">
+      <div className="w-full max-w-sm rounded-2xl border-t-4 border-umng-yellow bg-white p-6 shadow-2xl">
         <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy text-white">
-            <MapPinned className="h-5 w-5" aria-hidden />
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-umng-blue">
+            <MapPinned className="h-5 w-5 text-umng-yellow" aria-hidden />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-900">NeoMap Admin</h1>
-            <p className="text-xs text-slate-500">UMNG · Sede Calle 100</p>
+            <h1 className="text-lg font-extrabold tracking-wide text-umng-blue">NeoMap Admin</h1>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-umng-gold">UMNG · Sede Calle 100</p>
           </div>
         </div>
 
@@ -83,8 +83,8 @@ export default function LoginPage() {
         </form>
 
         {!isSupabaseMode && (
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
-            <p className="text-xs text-amber-800">
+          <div className="mt-4 rounded-xl border border-umng-yellow bg-umng-cream p-3">
+            <p className="text-xs text-umng-ink">
               Modo demo local: los datos se guardan solo en este navegador.
             </p>
             <Button
@@ -103,7 +103,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <Link to="/" className="mt-5 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
+        <Link to="/" className="mt-5 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-umng-blue hover:underline">
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
           Ver Mapa Público
         </Link>

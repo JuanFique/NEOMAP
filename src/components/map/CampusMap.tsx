@@ -12,18 +12,16 @@ import { CATEGORIA_META } from '@/data/categories';
 import {
   ARBOLES_FONDO,
   ARBOLES_FRENTE,
-  CESPED,
+  CANCHAS,
   COMPLEJO,
-  CORREDOR_A,
+  EDIFICIOS,
   ENTRADA,
   ESCALERAS,
-  PALETTES,
-  PARTS,
-  PASILLO_LABEL_AT,
-  PLAZA_ENTRADA,
+  ESCENA,
+  PARQUEO,
+  SUELOS,
   zonasDePiso,
-  type BlockPart,
-  type Bloque,
+  type Estructura,
   type Pt,
   type Zona,
 } from '@/data/campus';
@@ -41,6 +39,7 @@ import { PISO_LEVEL, PISO_SHORT, type Espacio, type Piso } from '@/lib/types';
 import { clamp } from '@/lib/utils';
 import {
   Callout,
+  DoorSign,
   GhostPrism,
   Pill,
   Pin,
@@ -89,11 +88,11 @@ interface Cam {
 /* Encuadre general del campus en coordenadas de pantalla isométrica. */
 const BOUNDS = (() => {
   const pts = [
-    isoToScreen(-14, 84),
-    isoToScreen(-7, 137),
-    isoToScreen(128, 137),
-    isoToScreen(134, 70),
-    isoToScreen(117, 10),
+    isoToScreen(-58, 11),
+    isoToScreen(-66, 146),
+    isoToScreen(17, 182),
+    isoToScreen(124, 172),
+    isoToScreen(122, 10),
     isoToScreen(27, 10),
     isoToScreen(117, 10, 5 * FLOOR_H),
     isoToScreen(87, 10, 5 * FLOOR_H),
@@ -109,27 +108,28 @@ const BOUNDS = (() => {
 
 const HOME: Cam = { k: 1, cx: BOUNDS.cx, cy: BOUNDS.cy };
 
+/** Rótulos sobre la cubierta en la vista completa del campus. */
 const LABEL_AT: Record<string, Pt | undefined> = {
-  'A-main': [94.5, 87],
-  'A-scale': [50, 126],
-  B: [67, 60],
-  C: [67, 40],
-  D: [67, 20],
-  E: [102, 36],
+  A: [43.5, 148.5],
+  B: [67, 106],
+  C: [67, 64],
+  D: [67, 22],
+  E: [102, 52],
+  Pasillo: [37, 88],
 };
 
-/** Con un piso en corte los rótulos se sacan del bloque para no tapar salas ni pines. */
+/** Con un piso en corte los rótulos salen del edificio para no tapar salas ni pines. */
 const LABEL_AT_CORTE: Record<string, Pt | undefined> = {
-  'A-main': [132, 87],
-  'A-scale': [77.5, 141],
-  B: [43.5, 60],
-  C: [43.5, 40],
-  D: [43.5, 20],
-  E: [121, 34],
+  A: [43.5, 166],
+  B: [20, 100],
+  C: [20, 64],
+  D: [20, 28],
+  E: [122, 52],
+  Pasillo: [37, 123],
 };
 
-function partLevels(part: BlockPart, bloque: Bloque): number[] {
-  return (part.pisos ?? bloque.pisos).map((p) => PISO_LEVEL[p]);
+function niveles(e: Estructura): number[] {
+  return e.pisos.map((p) => PISO_LEVEL[p]);
 }
 
 /** Vértice más cercano a la cámara, donde se rotulan los niveles. */
@@ -137,55 +137,128 @@ function frontVertex(poly: Pt[]): Pt {
   return poly.reduce((best, p) => (p[1] - p[0] > best[1] - best[0] ? p : best), poly[0]);
 }
 
-function PartView({ part, bloque, activeLevel }: { part: BlockPart; bloque: Bloque; activeLevel: number | null }) {
-  const palette = PALETTES[bloque.palette];
-  const levels = partLevels(part, bloque);
+function divisores(from: number, to: number): number[] {
+  const out: number[] = [];
+  for (let l = from; l < to; l++) out.push(l * FLOOR_H);
+  return out;
+}
+
+/** Silueta exterior completa: alas, patios cubiertos y cubiertas. */
+function Exterior({ e, opacity = 1 }: { e: Estructura; opacity?: number }) {
+  const maxL = Math.max(...niveles(e));
+  const volumenes = e.exterior ?? [{ poly: e.poly, alto: e.alto ?? maxL + 1, palette: e.palette }];
+  return (
+    <g opacity={opacity}>
+      {volumenes.map((v, i) => (
+        <SolidPrism
+          key={i}
+          poly={v.poly}
+          z0={0}
+          z1={v.alto * FLOOR_H}
+          palette={v.palette}
+          lines={divisores(1, Math.ceil(v.alto))}
+        />
+      ))}
+    </g>
+  );
+}
+
+function EstructuraView({ e, activeLevel }: { e: Estructura; activeLevel: number | null }) {
+  const levels = niveles(e);
   const minL = Math.min(...levels);
   const maxL = Math.max(...levels);
-  const topZ = (maxL + 1) * FLOOR_H;
-  const dividers = (from: number, to: number) => {
-    const out: number[] = [];
-    for (let l = from; l < to; l++) out.push(l * FLOOR_H);
-    return out;
-  };
+  const topL = (e.alto ?? maxL + 1) - 1;
 
-  if (activeLevel === null) {
-    return <SolidPrism poly={part.poly} z0={0} z1={topZ} palette={palette} lines={dividers(1, maxL + 1)} />;
-  }
-  if (activeLevel > maxL) {
-    return (
-      <SolidPrism poly={part.poly} z0={0} z1={topZ} palette={palette} lines={dividers(1, maxL + 1)} opacity={0.45} />
-    );
-  }
+  if (activeLevel === null) return <Exterior e={e} />;
+  if (activeLevel > maxL) return <Exterior e={e} opacity={e.zona === 'frontal' ? 0.3 : 0.45} />;
   if (activeLevel < minL) {
-    if (bloque.zona === 'complejo') {
-      // El bloque no baja hasta este nivel y taparía el corte: solo su silueta.
-      return <GhostPrism poly={part.poly} z0={0} z1={topZ} opacity={0.4} />;
-    }
-    return (
-      <SolidPrism poly={part.poly} z0={0} z1={topZ} palette={palette} lines={dividers(1, maxL + 1)} opacity={0.45} />
-    );
+    // El edificio no baja hasta este nivel y taparía el corte: solo su silueta.
+    if (e.zona === 'complejo') return <GhostPrism poly={e.poly} z0={0} z1={(topL + 1) * FLOOR_H} opacity={0.4} />;
+    return <Exterior e={e} opacity={0.3} />;
   }
 
   const z = activeLevel * FLOOR_H;
   const ghosts: number[] = [];
-  for (let l = activeLevel + 1; l <= maxL; l++) ghosts.push(l);
+  for (let l = activeLevel + 1; l <= topL; l++) ghosts.push(l);
   return (
     <g>
       {activeLevel > 0 && (
-        <SolidPrism poly={part.poly} z0={0} z1={z} palette={palette} lines={dividers(1, activeLevel)} />
+        <SolidPrism poly={e.poly} z0={0} z1={z} palette={e.palette} lines={divisores(1, activeLevel)} />
       )}
       <polygon
-        points={pointsAttr(part.poly, z)}
-        fill={palette.roof}
-        stroke="#2563EB"
+        points={pointsAttr(e.poly, z)}
+        fill={e.palette.floor}
+        stroke="#043074"
         strokeWidth={2}
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
       />
       {ghosts.map((l) => (
-        <GhostPrism key={l} poly={part.poly} z0={l * FLOOR_H} z1={(l + 1) * FLOOR_H} />
+        <GhostPrism key={l} poly={e.poly} z0={l * FLOOR_H} z1={(l + 1) * FLOOR_H} />
       ))}
+    </g>
+  );
+}
+
+function linea(a: Pt, b: Pt): { x1: number; y1: number; x2: number; y2: number } {
+  const p = isoToScreen(a[0], a[1], 0);
+  const q = isoToScreen(b[0], b[1], 0);
+  return { x1: p.x, y1: p.y, x2: q.x, y2: q.y };
+}
+
+/** Superficies del entorno: vías, plazoletas, canchas y parqueadero. */
+function Suelo() {
+  return (
+    <g pointerEvents="none">
+      {SUELOS.map((sup, i) => (
+        <polygon
+          key={i}
+          points={pointsAttr(sup.poly, 0)}
+          fill={sup.fill}
+          stroke={sup.stroke ?? sup.fill}
+          strokeWidth={0.4}
+          strokeLinejoin="round"
+        />
+      ))}
+      {/* Carriles de las avenidas */}
+      <line {...linea([-93, -14], [-93, 190])} stroke="#F4F5F6" strokeWidth={0.5} strokeDasharray="3 3" />
+      <line {...linea([-82, 199], [176, 199])} stroke="#F4F5F6" strokeWidth={0.5} strokeDasharray="3 3" />
+      {/* Trama diagonal de la plazoleta occidental */}
+      {[-60, -44, -28, -12].map((x) => (
+        <g key={x} stroke="#DCC6B2" strokeWidth={0.35}>
+          <line {...linea([x, 54], [x + 12, 100])} />
+          <line {...linea([x + 12, 54], [x, 100])} />
+        </g>
+      ))}
+      {CANCHAS.map((c, i) => {
+        const [x0, y0] = c[0];
+        const [x1, y1] = c[2];
+        const my = (y0 + y1) / 2;
+        return (
+          <g key={i}>
+            <polygon points={pointsAttr(c, 0)} fill="#5AA9DD" stroke="#FFFFFF" strokeWidth={0.5} />
+            <polygon
+              points={pointsAttr([[x0 + 2, y0 + 2], [x1 - 2, y0 + 2], [x1 - 2, y1 - 2], [x0 + 2, y1 - 2]], 0)}
+              fill="#3F8FCB"
+              stroke="#FFFFFF"
+              strokeWidth={0.35}
+            />
+            <line {...linea([x0 + 2, my], [x1 - 2, my])} stroke="#FFFFFF" strokeWidth={0.35} />
+          </g>
+        );
+      })}
+      {PARQUEO.map((fila) => {
+        const cupos: number[] = [];
+        for (let x = fila.x0; x <= fila.x1; x += 4) cupos.push(x);
+        return (
+          <g key={fila.y} stroke="#E9EBED" strokeWidth={0.3}>
+            <line {...linea([fila.x0, fila.y], [fila.x1, fila.y])} />
+            {cupos.map((x) => (
+              <line key={x} {...linea([x, fila.y - 3.5], [x, fila.y + 3.5])} />
+            ))}
+          </g>
+        );
+      })}
     </g>
   );
 }
@@ -459,10 +532,9 @@ const CampusMap = forwardRef<CampusMapHandle, Props>(function CampusMap(
     : '';
 
   const entrada = isoToScreen(ENTRADA[0], ENTRADA[1], 0);
-  const pasilloLabel = isoToScreen(PASILLO_LABEL_AT[0], PASILLO_LABEL_AT[1], 0);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 select-none overflow-hidden bg-[#E3ECD9]">
+    <div ref={containerRef} className="absolute inset-0 select-none overflow-hidden bg-[#DCE8CF]">
       <svg
         ref={svgRef}
         width="100%"
@@ -491,45 +563,40 @@ const CampusMap = forwardRef<CampusMapHandle, Props>(function CampusMap(
 
         {size.w > 0 && (
           <g transform={`translate(${tx},${ty}) scale(${s})`}>
-            {/* Suelo */}
-            {CESPED.map((poly, i) => (
-              <polygon
-                key={i}
-                points={pointsAttr(poly, 0)}
-                fill="#D5E3C8"
-                stroke="#D5E3C8"
-                strokeWidth={3}
-                strokeLinejoin="round"
-              />
-            ))}
-            <polygon points={pointsAttr(CORREDOR_A, 0)} fill="#E4DDD0" stroke="#D3CABA" strokeWidth={0.3} />
-            <polygon points={pointsAttr(PLAZA_ENTRADA, 0)} fill="#EFECE6" stroke="#D3CABA" strokeWidth={0.3} />
-            {sotano ? (
+            <Suelo />
+            {sotano && (
               <g>
                 <PitWalls poly={COMPLEJO} depth={FLOOR_H} />
                 <polygon
                   points={pointsAttr(COMPLEJO, -FLOOR_H)}
-                  fill="#E4DDD0"
+                  fill="#E8DFD3"
                   stroke="#B5AA95"
                   strokeWidth={0.8}
                   vectorEffect="non-scaling-stroke"
                 />
               </g>
-            ) : (
-              <polygon points={pointsAttr(COMPLEJO, 0)} fill="#EFECE6" stroke="#D3CABA" strokeWidth={0.3} />
             )}
 
             {ARBOLES_FONDO.map(([x, y]) => (
               <Tree key={`${x}-${y}`} x={x} y={y} />
             ))}
-            {ESCALERAS.map((e) => (
-              <StairSymbol key={e.id} x={e.x} y={e.y} len={e.len} z={0} />
-            ))}
 
-            {/* Edificios de fondo a frente */}
-            {PARTS.map(({ part, bloque }) => (
-              <PartView key={part.id} part={part} bloque={bloque} activeLevel={activeLevel} />
-            ))}
+            {/* Edificios y entorno, de fondo a frente */}
+            {ESCENA.map((item) =>
+              item.tipo === 'edificio' ? (
+                <EstructuraView key={item.id} e={item} activeLevel={activeLevel} />
+              ) : (
+                <SolidPrism
+                  key={item.id}
+                  poly={item.volumen.poly}
+                  z0={0}
+                  z1={item.volumen.alto * FLOOR_H}
+                  palette={item.volumen.palette}
+                  lines={divisores(1, Math.ceil(item.volumen.alto))}
+                  opacity={activeLevel === null ? 1 : 0.4}
+                />
+              ),
+            )}
 
             {/* Particiones del piso activo */}
             {activeFloor &&
@@ -544,7 +611,7 @@ const CampusMap = forwardRef<CampusMapHandle, Props>(function CampusMap(
                       points={pointsAttr(zona.poly, floorZ)}
                       fill={tint}
                       fillOpacity={list.length ? 0.85 : 0.5}
-                      stroke={isSelected ? '#16325C' : '#94A3B8'}
+                      stroke={isSelected ? '#043074' : '#94A3B8'}
                       strokeWidth={isSelected ? 2 : 0.8}
                       strokeLinejoin="round"
                       vectorEffect="non-scaling-stroke"
@@ -564,7 +631,7 @@ const CampusMap = forwardRef<CampusMapHandle, Props>(function CampusMap(
               })}
 
             {activeFloor &&
-              ESCALERAS.filter((e) => (e.zona === 'frontal' ? activeLevel === 0 || activeLevel === 1 : true)).map(
+              ESCALERAS.filter((e) => (e.zona === 'frontal' ? activeLevel === 0 || activeLevel === 1 : (activeLevel ?? 0) <= 2 || e.id.startsWith('E'))).map(
                 (e) => <StairSymbol key={e.id} x={e.x} y={e.y} len={e.len} z={floorZ} />,
               )}
 
@@ -574,65 +641,63 @@ const CampusMap = forwardRef<CampusMapHandle, Props>(function CampusMap(
 
             {/* Indicadores de nivel en la arista frontal de cada bloque */}
             {activeLevel !== null &&
-              PARTS.filter(({ part, bloque }) => partLevels(part, bloque).includes(activeLevel)).map(
-                ({ part, bloque }) => {
-                  const [vx, vy] = frontVertex(part.poly);
-                  return (part.pisos ?? bloque.pisos).map((piso) => {
-                    const level = PISO_LEVEL[piso];
-                    const p = isoToScreen(vx, vy, level * FLOOR_H + (level === activeLevel ? 0 : FLOOR_H / 2));
-                    const on = level === activeLevel;
-                    return (
-                      <g key={`${part.id}-${piso}`} transform={`translate(${p.x},${p.y}) scale(${inv})`} pointerEvents="none">
-                        <rect x={-13} y={-7} width={22} height={14} rx={4} fill={on ? '#2563EB' : '#FFFFFF'} opacity={on ? 1 : 0.7} stroke={on ? '#2563EB' : '#CBD5E1'} />
-                        <text x={-2} y={3.6} textAnchor="middle" fontSize={9} fontWeight={700} fill={on ? '#FFFFFF' : '#64748B'}>
-                          {PISO_SHORT[piso]}
-                        </text>
-                      </g>
-                    );
-                  });
-                },
-              )}
+              EDIFICIOS.filter((e) => niveles(e).includes(activeLevel)).map((e) => {
+                const [vx, vy] = frontVertex(e.poly);
+                return e.pisos.map((piso) => {
+                  const level = PISO_LEVEL[piso];
+                  const on = level === activeLevel;
+                  const p = isoToScreen(vx, vy, level * FLOOR_H + (on ? 0 : FLOOR_H / 2));
+                  return (
+                    <g key={`${e.id}-${piso}`} transform={`translate(${p.x},${p.y}) scale(${inv})`} pointerEvents="none">
+                      <rect x={-13} y={-7} width={22} height={14} rx={4} fill={on ? '#043074' : '#FFFFFF'} opacity={on ? 1 : 0.7} stroke={on ? '#FDC600' : '#CBD5E1'} />
+                      <text x={-2} y={3.6} textAnchor="middle" fontSize={9} fontWeight={700} fill={on ? '#FFFFFF' : '#64718A'}>
+                        {PISO_SHORT[piso]}
+                      </text>
+                    </g>
+                  );
+                });
+              })}
 
             {/* Nodo dorado de origen */}
             <g pointerEvents="none">
-              <circle className="origin-pulse" cx={entrada.x} cy={entrada.y} r={2.2} fill="#D99B26" />
-              <circle cx={entrada.x} cy={entrada.y} r={1.9} fill="#D99B26" stroke="#FFFFFF" strokeWidth={0.6} />
-              <circle cx={entrada.x} cy={entrada.y} r={0.7} fill="#FFFFFF" />
+              <circle className="origin-pulse" cx={entrada.x} cy={entrada.y} r={2.4} fill="#FDC600" />
+              <circle cx={entrada.x} cy={entrada.y} r={2} fill="#FDC600" stroke="#043074" strokeWidth={0.7} />
+              <circle cx={entrada.x} cy={entrada.y} r={0.75} fill="#043074" />
             </g>
 
             {/* Ruta */}
             {route && (
               <g fill="none" strokeLinejoin="round" strokeLinecap="round" pointerEvents="none">
-                <polyline points={routePoints} stroke="#FDE68A" strokeWidth={11} opacity={0.75} vectorEffect="non-scaling-stroke" />
-                <polyline points={routePoints} stroke="#D99B26" strokeWidth={4.5} vectorEffect="non-scaling-stroke" />
+                <polyline points={routePoints} stroke="#043074" strokeWidth={8.5} opacity={0.9} vectorEffect="non-scaling-stroke" />
+                <polyline points={routePoints} stroke="#FDC600" strokeWidth={5} vectorEffect="non-scaling-stroke" />
                 <polyline
                   className="route-flow"
                   points={routePoints}
-                  stroke="#FFF7DB"
-                  strokeWidth={2}
+                  stroke="#043074"
+                  strokeWidth={1.6}
                   strokeDasharray="6 12"
                   vectorEffect="non-scaling-stroke"
                 />
               </g>
             )}
 
-            {/* Rótulos flotantes */}
-            {PARTS.map(({ part, bloque }) => {
-              const levels = partLevels(part, bloque);
-              const maxL = Math.max(...levels);
-              const has = activeLevel !== null && levels.includes(activeLevel);
-              const at = (has ? LABEL_AT_CORTE : LABEL_AT)[part.id];
-              if (!at) return null;
-              const zLabel = has ? floorZ : (maxL + 1) * FLOOR_H;
-              const p = isoToScreen(at[0], at[1], zLabel);
-              const dim = activeLevel !== null && !has;
-              return (
-                <g key={part.id} opacity={dim ? 0.55 : 1}>
-                  <Pill x={p.x} y={p.y} inv={inv} text={part.nombre} />
-                </g>
-              );
+            {/* Letreros de acceso y rótulos flotantes */}
+            {EDIFICIOS.map((e) => {
+              if (!e.acceso || sotano) return null;
+              const p = isoToScreen(e.acceso.at[0], e.acceso.at[1], 3.2);
+              return <DoorSign key={e.id} x={p.x} y={p.y} inv={inv} letra={e.acceso.letra} color={e.acceso.color} />;
             })}
-            {!sotano && <Pill x={pasilloLabel.x} y={pasilloLabel.y} inv={inv} text="Pasillo" />}
+            {EDIFICIOS.map((e) => {
+              const levels = niveles(e);
+              const has = activeLevel !== null && levels.includes(activeLevel);
+              const at = (has ? LABEL_AT_CORTE : LABEL_AT)[e.id];
+              if (!at) return null;
+              const zLabel = has ? floorZ : (e.alto ?? Math.max(...levels) + 1) * FLOOR_H;
+              const p = isoToScreen(at[0], at[1], zLabel);
+              // Los edificios que no tienen el piso activo quedan atenuados y sin rótulo.
+              if (activeLevel !== null && !has) return null;
+              return <Pill key={e.id} x={p.x} y={p.y} inv={inv} text={e.nombre} />;
+            })}
             <Pill x={entrada.x} y={entrada.y} inv={inv} text="Entrada principal" dy={-26} />
 
             {/* Pines */}
@@ -645,7 +710,7 @@ const CampusMap = forwardRef<CampusMapHandle, Props>(function CampusMap(
                   x={p.x}
                   y={p.y}
                   inv={inv}
-                  color={isSel ? '#16325C' : CATEGORIA_META[e.categoria].color}
+                  color={isSel ? '#043074' : CATEGORIA_META[e.categoria].color}
                   dim={!isSel && matchIds !== null && !matchIds.has(e.id)}
                   selected={isSel}
                   title={e.nombre}

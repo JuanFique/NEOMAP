@@ -9,7 +9,7 @@ body,
 }
 
 body {
-  @apply bg-slate-50 font-sans text-slate-800 antialiased;
+  @apply bg-umng-mist font-sans text-umng-ink antialiased;
   overscroll-behavior: none;
 }
 

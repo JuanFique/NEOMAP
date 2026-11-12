@@ -25,8 +25,8 @@ export function SearchBar({ query, onQueryChange, results, onPick }: Props) {
 
   return (
     <div ref={boxRef} className="relative">
-      <div className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-md">
-        <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+      <div className="flex h-11 items-center gap-2 rounded-full border border-umng-blue/15 bg-white px-4 shadow-md focus-within:border-umng-blue focus-within:ring-2 focus-within:ring-umng-blue/20">
+        <Search className="h-4 w-4 shrink-0 text-umng-blue" aria-hidden />
         <input
           value={query}
           onChange={(ev) => {
@@ -58,7 +58,7 @@ export function SearchBar({ query, onQueryChange, results, onPick }: Props) {
       </div>
 
       {open && trimmed && (
-        <div className="absolute inset-x-0 top-full z-20 mt-2 max-h-[50dvh] overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+        <div className="absolute inset-x-0 top-full z-20 mt-2 max-h-[50dvh] overflow-y-auto rounded-2xl border border-umng-blue/15 bg-white py-1 shadow-lg">
           {results.length === 0 ? (
             <p className="px-4 py-5 text-center text-sm text-slate-500">
               No se encontraron espacios para '{trimmed}'
@@ -73,9 +73,9 @@ export function SearchBar({ query, onQueryChange, results, onPick }: Props) {
                       onPick(e);
                       setOpen(false);
                     }}
-                    className="flex w-full flex-col gap-1 px-4 py-2.5 text-left hover:bg-slate-50"
+                    className="flex w-full flex-col gap-1 px-4 py-2.5 text-left hover:bg-umng-ice"
                   >
-                    <span className="text-sm font-semibold text-slate-800">{e.nombre}</span>
+                    <span className="text-sm font-semibold text-umng-blue">{e.nombre}</span>
                     <span className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                       <CategoriaBadge categoria={e.categoria} className="px-2 py-0 text-[11px]" />
                       Bloque {e.bloque_id} · {e.piso}

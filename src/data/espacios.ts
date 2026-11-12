@@ -1,11 +1,14 @@
 import type { BloqueId, Categoria, Espacio, Piso } from '../lib/types';
+import { pdfY } from './campus';
 
 /**
  * Catálogo semilla de la sede Calle 100, tomado de pisos.pdf y acotado al
  * alcance del Project Charter: no incluye salones regulares, auditorios,
  * salas de profesores, tiendas/cafeterías ni zonas comunes.
  *
- * `coord_x` / `coord_y` están en las mismas coordenadas de planta que el mapa.
+ * Las filas del complejo B/C/D/E se digitan con las medidas de pisos.pdf y se
+ * llevan a planta real con `pdfY`; las del Bloque A ya están en planta real.
+ * `coord_x` / `coord_y` quedan en las mismas coordenadas que el mapa.
  */
 type Fila = [
   nombre: string,
@@ -20,14 +23,14 @@ type Fila = [
 
 const FILAS: Fila[] = [
   // Bloque A · Piso 1
-  ['Scale Up A', 'A', 'Piso 1', 'aulas_especiales', 77.5, 126, 'Espacio de aprendizaje activo y trabajo colaborativo en el primer nivel del Bloque A.'],
+  ['Scale Up A', 'A', 'Piso 1', 'aulas_especiales', 43.5, 154.5, 'Espacio de aprendizaje activo y trabajo colaborativo en el primer nivel del Bloque A.'],
 
   // Bloque A · Piso 2
-  ['Acreditación Institucional', 'A', 'Piso 2', 'oficinas_administrativas', 77.8, 76, 'Oficina de gestión de calidad y procesos de acreditación institucional.'],
-  ['División Logística y Vicerrectoría', 'A', 'Piso 2', 'oficinas_administrativas', 94.5, 98, 'Dependencia administrativa de logística y apoyo a vicerrectoría.'],
-  ['Oficina TIC', 'A', 'Piso 2', 'oficinas_administrativas', 52.3, 120.5, 'Soporte tecnológico, infraestructura y servicios de tecnologías de la información.'],
-  ['Vicerrectoría de Investigaciones', 'A', 'Piso 2', 'oficinas_administrativas', 90.3, 131.5, 'Dirección y gestión de proyectos y grupos de investigación.'],
-  ['Notas, Recibos y Finanzas', 'A', 'Piso 2', 'servicios', 115.5, 131.5, 'Atención estudiantil para trámites financieros, recibos de matrícula y registro de notas.'],
+  ['Acreditación Institucional', 'A', 'Piso 2', 'oficinas_administrativas', 34.3, 141.5, 'Oficina de gestión de calidad y procesos de acreditación institucional.'],
+  ['División Logística y Vicerrectoría', 'A', 'Piso 2', 'oficinas_administrativas', 52.8, 141.5, 'Dependencia administrativa de logística y apoyo a vicerrectoría.'],
+  ['Oficina TIC', 'A', 'Piso 2', 'oficinas_administrativas', 31, 155.5, 'Soporte tecnológico, infraestructura y servicios de tecnologías de la información.'],
+  ['Vicerrectoría de Investigaciones', 'A', 'Piso 2', 'oficinas_administrativas', 43.3, 155.5, 'Dirección y gestión de proyectos y grupos de investigación.'],
+  ['Notas, Recibos y Finanzas', 'A', 'Piso 2', 'servicios', 55.8, 155.5, 'Atención estudiantil para trámites financieros, recibos de matrícula y registro de notas.'],
 
   // Sótano
   ['Enfermería Sótano', 'C', 'Sótano', 'servicios', 67, 46.3, 'Punto de atención primaria en salud y primeros auxilios.'],
@@ -101,7 +104,7 @@ export const ESPACIOS_SEED: Espacio[] = FILAS.map(
     descripcion,
     imagen_url: null,
     coord_x,
-    coord_y,
+    coord_y: bloque_id === 'A' ? coord_y : pdfY(coord_y),
     created_at: SEED_DATE,
     updated_at: SEED_DATE,
   }),

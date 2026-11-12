@@ -1,4 +1,4 @@
-import { ENTRADA } from '../data/campus';
+import { ENTRADA, pdfY } from '../data/campus';
 import { FLOOR_H, type WorldPt } from './iso';
 import { PISO_LEVEL, type Espacio } from './types';
 
@@ -9,19 +9,22 @@ export interface Ruta {
   porEscaleras: boolean;
 }
 
-/** Eje del Pasillo occidental y corredores internos de cada bloque. */
+/** Ejes de circulación, en coordenadas de planta. */
+const PLAZA_X = ENTRADA[0];
 const PASILLO_X = 42;
-const CORREDOR_Y = { D: 20, C: 40, B: 60 } as const;
+const CORREDOR_Y = { D: pdfY(20), C: pdfY(40), B: pdfY(60) } as const;
 const CORREDOR_E_X = 102;
-const CORREDOR_A_Y = 109.5;
-const ESCALERA_OESTE = { D: 13.5, C: 53.5, B: 53.5 } as const;
-const ESCALERA_E = { x: 89, y: 53.5 };
-const ESCALERA_A = { x: -3, y: 107 };
+const CORREDOR_A_Y = 148.5;
+const ESCALERA_OESTE = { D: pdfY(13.5), C: pdfY(53.5), B: pdfY(53.5) } as const;
+const ESCALERA_OESTE_X = 30;
+const ESCALERA_E = { x: 89.5, y: pdfY(53.5) };
+const ESCALERA_A_X = 28;
 
 /**
  * Ruta general y fija desde la Entrada Principal hasta el bloque y piso del
- * espacio (sin navegación interior detallada): recorre el Pasillo, sube o baja
- * por el núcleo de escaleras más cercano y termina en el pin del espacio.
+ * espacio (sin navegación interior detallada): avanza por la plazoleta frontal,
+ * entra por el acceso del bloque, sube o baja por el núcleo de escaleras más
+ * cercano y termina en el pin del espacio.
  */
 export function buildRoute(espacio: Espacio): Ruta {
   const z = PISO_LEVEL[espacio.piso] * FLOOR_H;
@@ -38,19 +41,14 @@ export function buildRoute(espacio: Espacio): Ruta {
   add(ENTRADA[0], ENTRADA[1], 0);
 
   if (espacio.bloque_id === 'A') {
+    add(PLAZA_X, CORREDOR_A_Y, 0);
     if (porEscaleras) {
-      add(ESCALERA_A.x, ENTRADA[1], 0);
-      add(ESCALERA_A.x, ESCALERA_A.y, 0);
-      add(ESCALERA_A.x, ESCALERA_A.y, z);
-      add(ESCALERA_A.x, CORREDOR_A_Y, z);
-    } else {
-      add(PASILLO_X, ENTRADA[1], 0);
-      add(PASILLO_X, CORREDOR_A_Y, 0);
+      add(ESCALERA_A_X, CORREDOR_A_Y, 0);
+      add(ESCALERA_A_X, CORREDOR_A_Y, z);
     }
     add(px, CORREDOR_A_Y, z);
   } else if (espacio.bloque_id === 'E') {
-    add(PASILLO_X, ENTRADA[1], 0);
-    add(PASILLO_X, CORREDOR_Y.C, 0);
+    add(PLAZA_X, CORREDOR_Y.C, 0);
     if (porEscaleras) {
       add(ESCALERA_E.x, CORREDOR_Y.C, 0);
       add(ESCALERA_E.x, ESCALERA_E.y, 0);
@@ -62,16 +60,18 @@ export function buildRoute(espacio: Espacio): Ruta {
     add(CORREDOR_E_X, py, z);
   } else {
     const id = espacio.bloque_id;
-    add(PASILLO_X, ENTRADA[1], 0);
     if (porEscaleras) {
       const ys = ESCALERA_OESTE[id];
-      add(PASILLO_X, ys, 0);
-      add(29, ys, 0);
-      add(29, ys, z);
+      add(PLAZA_X, ys, 0);
+      add(ESCALERA_OESTE_X, ys, 0);
+      add(ESCALERA_OESTE_X, ys, z);
       add(PASILLO_X, ys, z);
+    } else {
+      add(PLAZA_X, CORREDOR_Y[id], 0);
+      add(PASILLO_X, CORREDOR_Y[id], 0);
     }
     if (px < 47) {
-      // Espacios sobre el propio Pasillo (p. ej. Sala de Sistemas).
+      // Espacios dentro del propio Pasillo (p. ej. Sala de Sistemas).
       add(PASILLO_X, py, z);
     } else {
       add(PASILLO_X, CORREDOR_Y[id], z);

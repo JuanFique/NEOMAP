@@ -1,7 +1,5 @@
-import type { Pt } from '@/data/campus';
+import type { Palette, Pt } from '@/data/campus';
 import { COS30, SIN30, isoToScreen, pointsAttr } from '@/lib/iso';
-
-export type Palette = { roof: string; left: string; right: string; line: string };
 
 interface Edge {
   a: Pt;
@@ -153,17 +151,17 @@ interface PillProps {
 
 /** Etiqueta flotante blanca tipo píldora; mantiene su tamaño al hacer zoom. */
 export function Pill({ x, y, inv, text, dy = 0 }: PillProps) {
-  const w = text.length * 6.5 + 24;
+  const w = text.length * 6.9 + 24;
   return (
     <g transform={`translate(${x},${y}) scale(${inv})`} pointerEvents="none">
       <g transform={`translate(0,${dy})`} filter="url(#neomap-shadow)">
-        <rect x={-w / 2} y={-12} width={w} height={24} rx={12} fill="#FFFFFF" stroke="#E2E8F0" strokeOpacity={0.8} />
+        <rect x={-w / 2} y={-12} width={w} height={24} rx={12} fill="#FFFFFF" stroke="#D5DCEA" />
         <text
           y={4}
           textAnchor="middle"
           fontSize={12}
           fontWeight={600}
-          fill="#1E293B"
+          fill="#043074"
           style={{ fontFamily: 'inherit' }}
         >
           {text}
@@ -230,13 +228,14 @@ export function Callout({ x, y, inv, title, subtitle }: CalloutProps) {
   return (
     <g transform={`translate(${x},${y}) scale(${inv})`} pointerEvents="none">
       <g filter="url(#neomap-shadow)">
-        <rect x={-w / 2} y={top} width={w} height={h} rx={10} fill="#16325C" />
-        <path d={`M-7,${top + h - 1} L0,${top + h + 8} L7,${top + h - 1} Z`} fill="#16325C" />
+        <rect x={-w / 2} y={top} width={w} height={h} rx={10} fill="#043074" />
+        <rect x={-w / 2 + 10} y={top + h - 3} width={w - 20} height={3} rx={1.5} fill="#FDC600" />
+        <path d={`M-7,${top + h - 1} L0,${top + h + 8} L7,${top + h - 1} Z`} fill="#043074" />
       </g>
       <text x={0} y={top + 19} textAnchor="middle" fontSize={13} fontWeight={700} fill="#FFFFFF">
         {t}
       </text>
-      <text x={0} y={top + 35} textAnchor="middle" fontSize={11} fontWeight={600} fill="#93C5FD">
+      <text x={0} y={top + 35} textAnchor="middle" fontSize={11} fontWeight={600} fill="#FDC600">
         {subtitle}
       </text>
     </g>
@@ -249,10 +248,10 @@ export function Tree({ x, y }: { x: number; y: number }) {
   return (
     <g pointerEvents="none">
       <ellipse cx={base.x} cy={base.y} rx={2.6} ry={1.2} fill="#0F172A" opacity={0.1} />
-      <line x1={base.x} y1={base.y} x2={top.x} y2={top.y + 1} stroke="#7C6A58" strokeWidth={0.5} strokeLinecap="round" />
-      <circle cx={top.x} cy={top.y} r={2.6} fill="#6FA36B" />
-      <circle cx={top.x + 0.9} cy={top.y + 0.8} r={2.6} fill="#5C8F59" opacity={0.35} />
-      <circle cx={top.x - 0.8} cy={top.y - 0.9} r={1.1} fill="#8DBB88" opacity={0.75} />
+      <line x1={base.x} y1={base.y} x2={top.x} y2={top.y + 1} stroke="#6B5545" strokeWidth={0.5} strokeLinecap="round" />
+      <circle cx={top.x} cy={top.y} r={2.6} fill="#4F8F5B" />
+      <circle cx={top.x + 0.9} cy={top.y + 0.8} r={2.6} fill="#3B7548" opacity={0.4} />
+      <circle cx={top.x - 0.8} cy={top.y - 0.9} r={1.1} fill="#7DB786" opacity={0.75} />
     </g>
   );
 }
@@ -284,6 +283,18 @@ export function StairSymbol({ x, y, len, z }: { x: number; y: number; len: numbe
           />
         );
       })}
+    </g>
+  );
+}
+
+/** Letrero cuadrado con la letra del bloque, sobre la fachada de acceso. */
+export function DoorSign({ x, y, inv, letra, color }: { x: number; y: number; inv: number; letra: string; color: string }) {
+  return (
+    <g transform={`translate(${x},${y}) scale(${inv})`} pointerEvents="none">
+      <rect x={-8} y={-8} width={16} height={16} rx={3} fill={color} stroke="#FFFFFF" strokeWidth={1.5} />
+      <text y={4} textAnchor="middle" fontSize={11} fontWeight={800} fill="#FFFFFF">
+        {letra}
+      </text>
     </g>
   );
 }

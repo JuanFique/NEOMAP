@@ -16,7 +16,7 @@ export const DEMO_ADMIN = { email: 'admin@unimilitar.edu.co', password: 'NeoMap2
 export const BUCKET_IMAGENES = 'espacios-imagenes';
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
-const LS_ESPACIOS = 'neomap.espacios.v1';
+const LS_ESPACIOS = 'neomap.espacios.v2';
 const LS_SESSION = 'neomap.session.v1';
 
 /* ------------------------------ Modo local ------------------------------ */

@@ -3,12 +3,23 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // Paleta y tipografía institucionales tomadas de umng.edu.co
       colors: {
-        navy: '#16325C',
-        gold: '#D99B26',
+        umng: {
+          blue: '#043074',
+          navy: '#02183A',
+          yellow: '#FDC600',
+          gold: '#B08022',
+          red: '#EE3124',
+          green: '#0D5E30',
+          ink: '#231F20',
+          mist: '#F5F7FA',
+          ice: '#E6EAFA',
+          cream: '#FFF4D1',
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['"Noto Sans"', 'Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'sans-serif'],
       },
     },
   },

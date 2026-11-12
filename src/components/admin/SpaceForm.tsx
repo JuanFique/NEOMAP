@@ -149,7 +149,7 @@ export function SpaceForm({ initial, onSubmit, onCancel }: Props) {
             <div className="space-y-2">
               <label
                 htmlFor="f-imagen"
-                className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 hover:bg-slate-50"
+                className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-full border border-umng-blue/30 bg-white px-3.5 text-[11px] font-bold uppercase tracking-wide text-umng-blue hover:bg-umng-ice"
               >
                 <ImagePlus className="h-3.5 w-3.5" aria-hidden />
                 {shown ? 'Cambiar PNG' : 'Subir PNG'}
@@ -159,7 +159,7 @@ export function SpaceForm({ initial, onSubmit, onCancel }: Props) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-red-600"
+                  className="text-umng-red"
                   onClick={() => {
                     setFile(null);
                     setPreview(null);

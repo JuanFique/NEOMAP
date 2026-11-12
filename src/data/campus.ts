@@ -2,9 +2,15 @@ import type { BloqueId, Piso } from '../lib/types';
 
 /**
  * Geometría del campus en coordenadas de planta (x → oriente, y → sur).
- * Las medidas salen de pisos.pdf: 1 unidad ≈ 10 px de las láminas de piso del
- * complejo B/C/D/E; la zona frontal (Bloque A y Scale Up A) se escaló con la
- * lámina general para conservar la posición y el tamaño relativos.
+ *
+ * La implantación sigue la vista aérea de la sede: 1 unidad ≈ 5 px de esa foto.
+ * El complejo principal es una barra frontal (el Pasillo) sobre la plazoleta
+ * occidental, tres alas perpendiculares (D, C y B, de norte a sur) separadas por
+ * patios cubiertos y la barra oriental (E) con su esquina achaflanada. El
+ * Bloque A es la torre aislada al sur, junto a la Entrada Principal.
+ *
+ * pisos.pdf dibuja el complejo comprimido en el eje norte-sur; `pdfY` lleva
+ * sus medidas a la proporción real.
  */
 export type Pt = readonly [number, number];
 
@@ -15,12 +21,20 @@ export const rect = (x0: number, y0: number, x1: number, y1: number): Pt[] => [
   [x0, y1],
 ];
 
+const PDF_Y0 = 10;
+const PDF_ESCALA_Y = 1.8;
+
+/** Convierte una coordenada `y` de pisos.pdf (complejo B/C/D/E) a planta real. */
+export function pdfY(y: number): number {
+  return Math.round((PDF_Y0 + (y - PDF_Y0) * PDF_ESCALA_Y) * 10) / 10;
+}
+
+const aReal = (poly: Pt[]): Pt[] => poly.map(([x, y]) => [x, pdfY(y)] as const);
+
 export interface BlockPart {
   id: string;
   nombre: string;
   poly: Pt[];
-  /** Pisos de esta ala cuando difieren de los del bloque. */
-  pisos?: Piso[];
 }
 
 export interface Bloque {
@@ -29,52 +43,58 @@ export interface Bloque {
   descripcion: string;
   pisos: Piso[];
   zona: 'frontal' | 'complejo';
-  palette: 'sand' | 'slate';
   parts: BlockPart[];
 }
 
+export interface Palette {
+  roof: string;
+  left: string;
+  right: string;
+  line: string;
+  /** Color de la losa cuando el piso se muestra en corte. */
+  floor: string;
+}
+
 export const PALETTES = {
-  sand: { roof: '#EDE4D3', left: '#DFD3BE', right: '#CFC1A8', line: '#B9AA8E' },
-  slate: { roof: '#F4F7FB', left: '#DCE6F2', right: '#C5D5E8', line: '#A9BCD4' },
-} as const;
+  /** Ladrillo a la vista con cubierta gris, como los edificios de la sede. */
+  brick: { roof: '#D9DADC', left: '#C9704A', right: '#AD5836', line: '#8C4428', floor: '#FBF7F2' },
+  /** Barra oriental: cubierta clara. */
+  brickLight: { roof: '#ECEDEE', left: '#C9704A', right: '#AD5836', line: '#8C4428', floor: '#FBF7F2' },
+  pasillo: { roof: '#CFD1D4', left: '#C9704A', right: '#AD5836', line: '#8C4428', floor: '#F1E9DF' },
+  glass: { roof: '#4A5663', left: '#5E6B78', right: '#4F5B67', line: '#3B4550', floor: '#FBF7F2' },
+  canopy: { roof: '#FAFAFA', left: '#E3E4E6', right: '#D2D4D7', line: '#B9BCC0', floor: '#FBF7F2' },
+  green: { roof: '#3E8A5B', left: '#C9704A', right: '#AD5836', line: '#2C6843', floor: '#FBF7F2' },
+} satisfies Record<string, Palette>;
 
 /** Huella completa del complejo principal (incluye el Pasillo y la esquina achaflanada). */
-export const COMPLEJO: Pt[] = [
+export const COMPLEJO: Pt[] = aReal([
   [27, 10],
   [117, 10],
   [117, 58],
   [98, 70],
   [27, 70],
-];
+]);
 
-export const PASILLO_LABEL_AT: Pt = [37, 66];
+const HUELLA_E: Pt[] = aReal([
+  [87, 10],
+  [117, 10],
+  [117, 58],
+  [98, 70],
+  [87, 70],
+]);
+const HUELLA_A: Pt[] = rect(25, 137, 62, 160);
 
-/** Corredor exterior en L de la zona frontal, que conecta la entrada con el Pasillo. */
-export const CORREDOR_A: Pt[] = [
-  [27, 70],
-  [61, 70],
-  [61, 104],
-  [128, 104],
-  [128, 115],
-  [27, 115],
-];
-
-export const PLAZA_ENTRADA: Pt[] = rect(-7, 84, 27, 104);
-export const ENTRADA: Pt = [4, 94];
+/** Origen de todas las rutas, sobre la plazoleta frontal junto al Bloque A. */
+export const ENTRADA: Pt = [17, 172];
 
 export const BLOQUES: Bloque[] = [
   {
     id: 'A',
     nombre: 'Bloque A',
-    descripcion: 'Zona frontal junto a la Entrada Principal; incluye el ala Scale Up A.',
+    descripcion: 'Torre junto a la Entrada Principal; incluye el espacio Scale Up A.',
     pisos: ['Piso 1', 'Piso 2'],
     zona: 'frontal',
-    palette: 'sand',
-    parts: [
-      { id: 'A-main', nombre: 'Bloque A', poly: rect(61, 70, 128, 104) },
-      { id: 'A-scale', nombre: 'Scale Up A', poly: rect(27, 115, 128, 137) },
-      { id: 'A-small', nombre: 'Bloque A', poly: rect(-7, 104, 27, 137) },
-    ],
+    parts: [{ id: 'A', nombre: 'Bloque A', poly: HUELLA_A }],
   },
   {
     id: 'B',
@@ -82,8 +102,7 @@ export const BLOQUES: Bloque[] = [
     descripcion: 'Ala sur del complejo principal.',
     pisos: ['Piso 1', 'Piso 2', 'Piso 3'],
     zona: 'complejo',
-    palette: 'slate',
-    parts: [{ id: 'B', nombre: 'Bloque B', poly: rect(47, 50, 87, 70) }],
+    parts: [{ id: 'B', nombre: 'Bloque B', poly: aReal(rect(47, 50, 87, 70)) }],
   },
   {
     id: 'C',
@@ -91,16 +110,7 @@ export const BLOQUES: Bloque[] = [
     descripcion: 'Ala central del complejo principal.',
     pisos: ['Sótano', 'Piso 1', 'Piso 2', 'Piso 3'],
     zona: 'complejo',
-    palette: 'slate',
-    parts: [
-      { id: 'C', nombre: 'Bloque C', poly: rect(47, 30, 87, 50) },
-      {
-        id: 'C-pasillo',
-        nombre: 'Pasillo',
-        poly: rect(27, 17, 37, 50),
-        pisos: ['Piso 1', 'Piso 2', 'Piso 3'],
-      },
-    ],
+    parts: [{ id: 'C', nombre: 'Bloque C', poly: aReal(rect(47, 30, 87, 50)) }],
   },
   {
     id: 'D',
@@ -108,29 +118,15 @@ export const BLOQUES: Bloque[] = [
     descripcion: 'Ala norte del complejo principal.',
     pisos: ['Sótano', 'Piso 1', 'Piso 2', 'Piso 3'],
     zona: 'complejo',
-    palette: 'slate',
-    parts: [{ id: 'D', nombre: 'Bloque D', poly: rect(47, 10, 87, 30) }],
+    parts: [{ id: 'D', nombre: 'Bloque D', poly: aReal(rect(47, 10, 87, 30)) }],
   },
   {
     id: 'E',
     nombre: 'Bloque E',
-    descripcion: 'Torre oriental de cinco pisos con la esquina suroriental achaflanada.',
+    descripcion: 'Barra oriental de cinco pisos con la esquina suroriental achaflanada.',
     pisos: ['Sótano', 'Piso 1', 'Piso 2', 'Piso 3', 'Piso 4', 'Piso 5'],
     zona: 'complejo',
-    palette: 'slate',
-    parts: [
-      {
-        id: 'E',
-        nombre: 'Bloque E',
-        poly: [
-          [87, 10],
-          [117, 10],
-          [117, 58],
-          [98, 70],
-          [87, 70],
-        ],
-      },
-    ],
+    parts: [{ id: 'E', nombre: 'Bloque E', poly: HUELLA_E }],
   },
 ];
 
@@ -139,20 +135,134 @@ export const BLOQUE_BY_ID = Object.fromEntries(BLOQUES.map((b) => [b.id, b])) as
   Bloque
 >;
 
-/** Orden de pintado de fondo a frente para la cámara suroccidental. */
-export const DRAW_ORDER = ['E', 'D', 'C', 'B', 'C-pasillo', 'A-main', 'A-scale', 'A-small'];
-
-export const PARTS: { part: BlockPart; bloque: Bloque }[] = DRAW_ORDER.map((id) => {
-  for (const bloque of BLOQUES) {
-    const part = bloque.parts.find((p) => p.id === id);
-    if (part) return { part, bloque };
-  }
-  throw new Error(`Parte desconocida: ${id}`);
-});
-
 export function pisosDeBloque(id: BloqueId): Piso[] {
   return BLOQUE_BY_ID[id].pisos;
 }
+
+/* ------------------------------------------------------------------ */
+/* Volúmenes que se dibujan                                            */
+/* ------------------------------------------------------------------ */
+
+export interface Volumen {
+  poly: Pt[];
+  /** Altura en pisos. */
+  alto: number;
+  palette: Palette;
+}
+
+/** Edificio navegable: se puede cortar por piso. */
+export interface Estructura {
+  tipo: 'edificio';
+  id: string;
+  nombre: string;
+  /** Huella de las losas en el corte por piso. */
+  poly: Pt[];
+  pisos: Piso[];
+  zona: 'frontal' | 'complejo';
+  palette: Palette;
+  /** Pisos sobre el suelo de la silueta exterior, si supera a los navegables. */
+  alto?: number;
+  /** Volumetría exterior cuando difiere de la huella (alas y patios cubiertos). */
+  exterior?: Volumen[];
+  /** Letrero de acceso sobre la fachada, como los de la sede. */
+  acceso?: { at: Pt; letra: string; color: string };
+}
+
+/** Edificio o cubierta del entorno: solo da contexto, no se corta. */
+export interface Contexto {
+  tipo: 'contexto';
+  id: string;
+  volumen: Volumen;
+}
+
+const OCTAGONO: Pt[] = [
+  [-57, 70],
+  [-44, 70],
+  [-38, 77],
+  [-38, 90],
+  [-44, 97],
+  [-57, 97],
+  [-63, 90],
+  [-63, 77],
+];
+
+/** Orden de pintado de fondo a frente para la cámara suroccidental. */
+export const ESCENA: (Estructura | Contexto)[] = [
+  { tipo: 'contexto', id: 'ctx-ne', volumen: { poly: rect(122, 10, 156, 50), alto: 3, palette: PALETTES.brick } },
+  {
+    tipo: 'edificio',
+    id: 'E',
+    nombre: 'Bloque E',
+    poly: HUELLA_E,
+    pisos: BLOQUE_BY_ID.E.pisos,
+    zona: 'complejo',
+    palette: PALETTES.brickLight,
+  },
+  {
+    tipo: 'edificio',
+    id: 'D',
+    nombre: 'Bloque D',
+    poly: BLOQUE_BY_ID.D.parts[0].poly,
+    pisos: BLOQUE_BY_ID.D.pisos,
+    zona: 'complejo',
+    palette: PALETTES.brick,
+    exterior: [
+      { poly: rect(47, 10, 87, 34.5), alto: 3, palette: PALETTES.brick },
+      { poly: rect(47, 34.5, 87, 51.5), alto: 2.5, palette: PALETTES.glass },
+    ],
+    acceso: { at: [27, 28], letra: 'D', color: '#EE3124' },
+  },
+  {
+    tipo: 'edificio',
+    id: 'C',
+    nombre: 'Bloque C',
+    poly: BLOQUE_BY_ID.C.parts[0].poly,
+    pisos: BLOQUE_BY_ID.C.pisos,
+    zona: 'complejo',
+    palette: PALETTES.brick,
+    exterior: [
+      { poly: rect(47, 51.5, 87, 76.5), alto: 3, palette: PALETTES.brick },
+      { poly: rect(47, 76.5, 87, 93.5), alto: 2.5, palette: PALETTES.glass },
+    ],
+    acceso: { at: [27, 64], letra: 'C', color: '#FDC600' },
+  },
+  {
+    tipo: 'edificio',
+    id: 'B',
+    nombre: 'Bloque B',
+    poly: BLOQUE_BY_ID.B.parts[0].poly,
+    pisos: BLOQUE_BY_ID.B.pisos,
+    zona: 'complejo',
+    palette: PALETTES.brick,
+    exterior: [{ poly: rect(47, 93.5, 87, 118), alto: 3, palette: PALETTES.brick }],
+    acceso: { at: [27, 100], letra: 'B', color: '#7AB648' },
+  },
+  {
+    tipo: 'edificio',
+    id: 'Pasillo',
+    nombre: 'Pasillo',
+    poly: rect(27, 10, 47, 118),
+    pisos: ['Sótano', 'Piso 1', 'Piso 2', 'Piso 3'],
+    zona: 'complejo',
+    palette: PALETTES.pasillo,
+  },
+  { tipo: 'contexto', id: 'ctx-carpa', volumen: { poly: rect(31, 120, 62, 134), alto: 0.7, palette: PALETTES.canopy } },
+  {
+    tipo: 'edificio',
+    id: 'A',
+    nombre: 'Bloque A',
+    poly: HUELLA_A,
+    pisos: BLOQUE_BY_ID.A.pisos,
+    zona: 'frontal',
+    palette: PALETTES.brick,
+    alto: 6,
+    acceso: { at: [25, 148.5], letra: 'A', color: '#6EC1E4' },
+  },
+  { tipo: 'contexto', id: 'ctx-aula', volumen: { poly: rect(-55, 11, -15, 50), alto: 2.6, palette: PALETTES.brick } },
+  { tipo: 'contexto', id: 'ctx-octagono', volumen: { poly: OCTAGONO, alto: 1.4, palette: PALETTES.green } },
+];
+
+export const EDIFICIOS: Estructura[] = ESCENA.filter((e): e is Estructura => e.tipo === 'edificio');
 
 /* ------------------------------------------------------------------ */
 /* Zonas internas (particiones de cada piso)                           */
@@ -168,8 +278,15 @@ export interface Zona {
 
 const zonas: Zona[] = [];
 
-function z(piso: Piso, bloque: BloqueId, poly: Pt[], label?: string): void {
-  zonas.push({ id: `${piso}-${bloque}-${zonas.length}`, piso, bloque, poly, label });
+/** Las zonas del complejo se digitan con las medidas de pisos.pdf. */
+function z(piso: Piso, bloque: BloqueId, poly: Pt[], label?: string, real = false): void {
+  zonas.push({
+    id: `${piso}-${bloque}-${zonas.length}`,
+    piso,
+    bloque,
+    poly: real ? poly : aReal(poly),
+    label,
+  });
 }
 
 /** Divide un rectángulo en franjas iguales a lo largo de `axis`. */
@@ -296,20 +413,15 @@ z('Piso 5', 'E', rect(87, 50.6, 98, 70));
 split('Piso 5', 'E', [105, 10, 117, 58], 'y', ['Multimedia 2', 'Multimedia 3', 'Electrónica', 'Doc. Innovación']);
 z('Piso 5', 'E', TRI_E_ALTO, 'Sala Prof. Ing.');
 
-// --- Zona frontal: Bloque A y Scale Up A -------------------------------
-z('Piso 1', 'A', rect(61, 70, 128, 104), 'Aulas Bloque A');
-z('Piso 1', 'A', rect(27, 115, 128, 137), 'Scale Up A');
-z('Piso 1', 'A', rect(-7, 104, 27, 137), 'Bloque A');
+// --- Bloque A (coordenadas reales de la torre) -------------------------
+z('Piso 1', 'A', rect(25, 137, 62, 148), 'Aulas Bloque A', true);
+z('Piso 1', 'A', rect(25, 148, 62, 160), 'Scale Up A', true);
 
-z('Piso 2', 'A', rect(61, 70, 94.5, 82), 'Acreditación Institucional');
-z('Piso 2', 'A', rect(94.5, 70, 128, 82));
-z('Piso 2', 'A', rect(61, 92, 128, 104), 'División Logística | Vicerrectoría');
-z('Piso 2', 'A', rect(27, 115, 77.5, 126), 'Oficina TIC');
-z('Piso 2', 'A', rect(77.5, 115, 128, 126));
-z('Piso 2', 'A', rect(27, 126, 77.5, 137));
-z('Piso 2', 'A', rect(77.5, 126, 103, 137), 'Vic. Investigaciones');
-z('Piso 2', 'A', rect(103, 126, 128, 137), 'Notas · Recibos · Finanzas');
-z('Piso 2', 'A', rect(-7, 104, 27, 137));
+z('Piso 2', 'A', rect(25, 137, 43.5, 146), 'Acreditación', true);
+z('Piso 2', 'A', rect(43.5, 137, 62, 146), 'Logística | Vicerrectoría', true);
+z('Piso 2', 'A', rect(25, 151, 37, 160), 'Oficina TIC', true);
+z('Piso 2', 'A', rect(37, 151, 49.5, 160), 'Vic. Investig.', true);
+z('Piso 2', 'A', rect(49.5, 151, 62, 160), 'Notas · Finanzas', true);
 
 export const ZONAS: Zona[] = zonas;
 
@@ -318,7 +430,7 @@ export function zonasDePiso(piso: Piso): Zona[] {
 }
 
 /* ------------------------------------------------------------------ */
-/* Escaleras, árboles y césped                                         */
+/* Escaleras, suelo y arbolado                                         */
 /* ------------------------------------------------------------------ */
 
 export interface Escalera {
@@ -331,60 +443,105 @@ export interface Escalera {
 }
 
 export const ESCALERAS: Escalera[] = [
-  { id: 'O-N', x: 27.6, y: 10.5, len: 6, zona: 'complejo' },
-  { id: 'O-S', x: 27.6, y: 50.5, len: 6, zona: 'complejo' },
-  { id: 'E-N', x: 87.4, y: 10.5, len: 6, zona: 'complejo' },
-  { id: 'E-S', x: 87.4, y: 50.5, len: 6, zona: 'complejo' },
-  { id: 'A', x: -6, y: 104.8, len: 5, zona: 'frontal' },
+  { id: 'O-N', x: 27.8, y: pdfY(10.6), len: 10, zona: 'complejo' },
+  { id: 'O-S', x: 27.8, y: pdfY(50.6), len: 10, zona: 'complejo' },
+  { id: 'E-N', x: 87.6, y: pdfY(10.6), len: 10, zona: 'complejo' },
+  { id: 'E-S', x: 87.6, y: pdfY(50.6), len: 10, zona: 'complejo' },
+  { id: 'A', x: 25.6, y: 146.4, len: 4.2, zona: 'frontal' },
+];
+
+export interface Suelo {
+  poly: Pt[];
+  fill: string;
+  stroke?: string;
+}
+
+/** Superficies a ras de suelo, de abajo hacia arriba. */
+export const SUELOS: Suelo[] = [
+  // Avenidas y andenes perimetrales
+  { poly: rect(-104, -14, -82, 208), fill: '#A9AEB4' },
+  { poly: rect(-104, 190, 176, 208), fill: '#A9AEB4' },
+  { poly: rect(-82, -14, -72, 190), fill: '#E6DDD3' },
+  { poly: rect(-72, 183, 176, 190), fill: '#E6DDD3' },
+  // Césped
+  { poly: rect(-70, 148, -2, 181), fill: '#CFE0BF' },
+  { poly: rect(22, -6, 160, 6), fill: '#CFE0BF' },
+  { poly: rect(121, 56, 158, 122), fill: '#CFE0BF' },
+  { poly: rect(27, 165, 66, 181), fill: '#CFE0BF' },
+  // Plazoleta occidental, canchas y vía interna
+  { poly: rect(-70, 4, 0, 102), fill: '#EBD9C9', stroke: '#DCC6B2' },
+  { poly: rect(-70, 102, -2, 147), fill: '#DCE3E8' },
+  { poly: rect(0, -6, 7, 183), fill: '#B4B9BF' },
+  // Plazoleta frontal de ladrillo y parqueadero
+  { poly: rect(7, 4, 27, 183), fill: '#E3C2A8', stroke: '#D3AE92' },
+  { poly: rect(27, 118, 68, 165), fill: '#E3C2A8', stroke: '#D3AE92' },
+  { poly: rect(68, 124, 136, 183), fill: '#B4B9BF' },
+];
+
+export const CANCHAS: Pt[][] = [rect(-64, 106, -37, 144), rect(-33, 106, -6, 144)];
+
+/** Franjas de parqueo (x inicial, y) para las líneas de los cupos. */
+export const PARQUEO: { x0: number; x1: number; y: number }[] = [
+  { x0: 72, x1: 132, y: 132 },
+  { x0: 72, x1: 132, y: 148 },
+  { x0: 72, x1: 132, y: 164 },
+  { x0: 72, x1: 132, y: 178 },
 ];
 
 export const ARBOLES_FONDO: Pt[] = [
-  [36, 4],
-  [52, 4],
-  [68, 4],
-  [84, 4],
-  [100, 4],
-  [116, 4],
-  [123, 16],
-  [123, 30],
-  [123, 44],
-  [124, 60],
-  [108, 68],
+  [34, 0],
+  [52, 0],
+  [70, 0],
+  [88, 0],
+  [106, 0],
+  [124, 0],
+  [142, 0],
+  [127, 62],
+  [140, 70],
+  [128, 82],
+  [144, 92],
+  [130, 104],
+  [146, 114],
+  [100, 122],
 ];
 
 export const ARBOLES_FRENTE: Pt[] = [
-  [21, 14],
-  [21, 27],
-  [21, 40],
-  [21, 53],
-  [21, 66],
-  [-13, 86],
-  [-13, 99],
-  [8, 79],
-  [19, 78],
-  [134, 78],
-  [134, 94],
-  [134, 110],
-  [134, 126],
-  [6, 143],
-  [28, 143],
-  [50, 143],
-  [72, 143],
-  [94, 143],
-  [116, 143],
+  // Plazoleta frontal
+  [12, 20],
+  [12, 46],
+  [12, 82],
+  [12, 116],
+  [12, 140],
+  // Jardín junto al Bloque A
+  [34, 172],
+  [46, 174],
+  [58, 172],
+  // Parque suroccidental
+  [-62, 154],
+  [-50, 160],
+  [-38, 153],
+  [-26, 162],
+  [-14, 154],
+  [-56, 172],
+  [-42, 174],
+  [-28, 175],
+  [-12, 172],
+  // Andén occidental
+  [-77, 20],
+  [-77, 50],
+  [-77, 80],
+  [-77, 110],
+  [-77, 140],
+  [-77, 170],
+  // Andén sur
+  [80, 186.5],
+  [100, 186.5],
+  [120, 186.5],
+  [140, 186.5],
 ];
 
-export const CESPED: Pt[][] = [
-  rect(30, -2, 122, 7),
-  rect(119, 8, 130, 66),
-  rect(-18, 76, 24, 82),
-  rect(-2, 140, 124, 147),
-  rect(130, 72, 139, 134),
-  rect(14, 8, 25, 70),
-];
-
-/** Rectángulo de planta que encierra el campus (para encuadres y lienzos 2D). */
+/** Rectángulos de planta para los lienzos 2D del panel administrativo. */
 export const VISTAS = {
-  complejo: { x0: 24, y0: 7, x1: 120, y1: 73 },
-  frontal: { x0: -10, y0: 67, x1: 131, y1: 140 },
+  complejo: { x0: 23, y0: 6, x1: 121, y1: 122 },
+  frontal: { x0: 5, y0: 128, x1: 72, y1: 170 },
 } as const;

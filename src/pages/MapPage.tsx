@@ -22,7 +22,7 @@ function haystack(e: Espacio): string {
 /** Espacio que tapan los paneles flotantes, para encuadrar en el área libre. */
 function panelPadding(): FitOptions {
   const desktop = window.matchMedia('(min-width: 640px)').matches;
-  return desktop ? { padRight: 370 } : { padBottom: window.innerHeight * 0.4, padTop: 205 };
+  return desktop ? { padRight: 370, padTop: 56 } : { padBottom: window.innerHeight * 0.4, padTop: 285 };
 }
 
 export default function MapPage() {
@@ -126,21 +126,37 @@ export default function MapPage() {
         onSelect={selectSpace}
       />
 
+      {/* Barra institucional */}
+      <header className="absolute inset-x-0 top-0 z-30 flex h-12 items-center gap-3 border-b-4 border-umng-yellow bg-umng-blue px-3 text-white shadow-md sm:h-14 sm:px-5">
+        <MapPinned className="h-5 w-5 shrink-0 text-umng-yellow" aria-hidden />
+        <div className="min-w-0 leading-tight">
+          <p className="text-base font-extrabold tracking-wide">NeoMap</p>
+          <p className="hidden truncate text-[11px] font-medium uppercase tracking-wider text-white/75 sm:block">
+            Universidad Militar Nueva Granada · Sede Calle 100
+          </p>
+        </div>
+        <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-umng-yellow sm:hidden">
+          Calle 100
+        </span>
+        <Link
+          to="/admin"
+          className="ml-auto flex items-center gap-1.5 rounded-full border border-white/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white hover:bg-white/10"
+        >
+          <Lock className="h-3.5 w-3.5" aria-hidden />
+          Admin
+          {!isSupabaseMode && (
+            <span className="rounded-full bg-umng-yellow px-1.5 text-[10px] text-umng-blue">demo</span>
+          )}
+        </Link>
+      </header>
+
       {/* HUD superior izquierdo */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 sm:right-auto sm:w-[30rem] sm:p-4">
+      <div className="pointer-events-none absolute inset-x-0 top-12 z-20 p-3 sm:right-auto sm:top-14 sm:w-[30rem] sm:p-4">
         <div className="pointer-events-auto space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-navy px-3 text-white shadow-md">
-              <MapPinned className="h-4 w-4" aria-hidden />
-              <span className="text-sm font-bold tracking-tight">NeoMap</span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <SearchBar query={query} onQueryChange={setQuery} results={matches} onPick={selectSpace} />
-            </div>
-          </div>
+          <SearchBar query={query} onQueryChange={setQuery} results={matches} onPick={selectSpace} />
           <CategoryFilters active={cats} onToggle={toggleCat} showClear={filterActive} onClear={clearFilters} />
           {filterActive && (
-            <p className="hidden rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm sm:inline-block">
+            <p className="hidden rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-umng-blue shadow-sm sm:inline-block">
               {matches.length === 1 ? '1 espacio coincide' : `${matches.length} espacios coinciden`}
             </p>
           )}
@@ -154,31 +170,21 @@ export default function MapPage() {
       </div>
 
       {/* Selector de piso */}
-      <div className="absolute left-4 top-1/2 z-10 hidden -translate-y-1/3 sm:block">
+      <div className="absolute left-4 top-1/2 z-10 hidden -translate-y-[38%] sm:block">
         <FloorSelector active={activeFloor} onChange={changeFloor} />
       </div>
 
       {/* Resumen de ruta */}
       {route && (
         <div className="pointer-events-none absolute inset-x-0 bottom-5 z-10 hidden justify-center px-3 sm:flex">
-          <p className="rounded-full border border-amber-200 bg-white px-4 py-2 text-center text-xs font-semibold text-slate-700 shadow-md">
-            <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-gold align-middle" aria-hidden />
+          <p className="rounded-full border-2 border-umng-yellow bg-umng-blue px-5 py-2 text-center text-xs font-semibold text-white shadow-md">
+            <span className="mr-2 inline-block h-2 w-2 rounded-full bg-umng-yellow align-middle" aria-hidden />
             {route.resumen}
           </p>
         </div>
       )}
 
       {/* Controles inferiores */}
-      {!selected && (
-        <Link
-          to="/admin"
-          className="absolute bottom-4 left-3 z-10 flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-md hover:bg-slate-50 sm:left-4"
-        >
-          <Lock className="h-3.5 w-3.5" aria-hidden />
-          Admin
-          {!isSupabaseMode && <span className="rounded-full bg-amber-100 px-1.5 text-[10px] text-amber-700">demo</span>}
-        </Link>
-      )}
       <div className={`absolute right-3 z-10 sm:bottom-4 sm:right-4 ${selected ? 'bottom-[calc(40dvh+0.75rem)]' : 'bottom-4'}`}>
         <ZoomControls
           onZoomIn={() => mapRef.current?.zoomIn()}

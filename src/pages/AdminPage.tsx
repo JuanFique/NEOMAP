@@ -79,29 +79,29 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
+    <div className="min-h-[100dvh] bg-umng-mist">
+      <header className="sticky top-0 z-20 border-b-4 border-umng-yellow bg-umng-blue text-white shadow-md">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy text-white">
-              <MapPinned className="h-4 w-4" aria-hidden />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
+              <MapPinned className="h-4 w-4 text-umng-yellow" aria-hidden />
             </div>
             <div className="leading-tight">
-              <p className="text-sm font-bold text-slate-900">NeoMap Admin</p>
-              <p className="text-[11px] text-slate-500">{email}</p>
+              <p className="text-sm font-extrabold tracking-wide">NeoMap Admin</p>
+              <p className="text-[11px] text-white/70">{email}</p>
             </div>
             {!isSupabaseMode && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+              <span className="rounded-full bg-umng-yellow px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-umng-blue">
                 Modo demo local
               </span>
             )}
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <Link to="/" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+            <Link to="/" className={cn(buttonVariants({ variant: 'gold', size: 'sm' }))}>
               <MapIcon className="h-3.5 w-3.5" aria-hidden />
               Ver Mapa Público
             </Link>
-            <Button variant="ghost" size="sm" onClick={() => void signOut()}>
+            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10" onClick={() => void signOut()}>
               <LogOut className="h-3.5 w-3.5" aria-hidden />
               Cerrar sesión
             </Button>
@@ -112,8 +112,8 @@ export default function AdminPage() {
       <main className="mx-auto max-w-6xl space-y-4 px-4 py-5">
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Espacios del campus</h1>
-            <p className="text-xs text-slate-500">
+            <h1 className="border-l-4 border-umng-yellow pl-3 text-2xl font-extrabold text-umng-blue">Espacios del campus</h1>
+            <p className="pl-4 text-xs text-slate-500">
               {rows.length} de {espacios.length} espacios
             </p>
           </div>
@@ -160,7 +160,7 @@ export default function AdminPage() {
 
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full min-w-[46rem] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="bg-umng-blue text-[11px] uppercase tracking-wider text-white">
               <tr>
                 <th className="px-4 py-3 font-semibold">Código</th>
                 <th className="px-4 py-3 font-semibold">Nombre</th>
@@ -173,10 +173,10 @@ export default function AdminPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50/60">
+                <tr key={e.id} className="hover:bg-umng-ice/50">
                   <td className="px-4 py-2.5 text-slate-500">{e.codigo ?? '—'}</td>
                   <td className="px-4 py-2.5">
-                    <p className="font-semibold text-slate-800">{e.nombre}</p>
+                    <p className="font-semibold text-umng-blue">{e.nombre}</p>
                     <p className="text-[11px] text-slate-400">Actualizado: {formatDate(e.updated_at)}</p>
                   </td>
                   <td className="px-4 py-2.5">{e.bloque_id}</td>
@@ -198,7 +198,7 @@ export default function AdminPage() {
                       <Button variant="ghost" size="icon" aria-label={`Editar ${e.nombre}`} onClick={() => setEditing({ mode: 'edit', espacio: e })}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-red-600 hover:bg-red-50" aria-label={`Eliminar ${e.nombre}`} onClick={() => setDeleting(e)}>
+                      <Button variant="ghost" size="icon" className="text-umng-red hover:bg-red-50" aria-label={`Eliminar ${e.nombre}`} onClick={() => setDeleting(e)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -220,7 +220,7 @@ export default function AdminPage() {
       <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-900">
+            <DialogTitle className="text-lg font-extrabold text-umng-blue">
               {editing?.mode === 'edit' ? 'Editar espacio' : 'Nuevo espacio'}
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
@@ -240,7 +240,7 @@ export default function AdminPage() {
 
       <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>
-          <AlertDialogTitle className="text-base font-bold text-slate-900">¿Eliminar este espacio?</AlertDialogTitle>
+          <AlertDialogTitle className="text-base font-extrabold text-umng-blue">¿Eliminar este espacio?</AlertDialogTitle>
           <AlertDialogDescription className="mt-2 text-sm text-slate-600">
             Se eliminará <b>{deleting?.nombre}</b> del mapa. Esta acción no se puede deshacer.
           </AlertDialogDescription>

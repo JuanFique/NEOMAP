@@ -2,7 +2,7 @@ import { forwardRef, type InputHTMLAttributes, type LabelHTMLAttributes, type Se
 import { cn } from '@/lib/utils';
 
 const field =
-  'w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-800 shadow-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50';
+  'w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-umng-ink placeholder:text-slate-400 focus-visible:border-umng-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-umng-blue/30 disabled:opacity-50';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => <input ref={ref} className={cn(field, 'h-10', className)} {...props} />,
@@ -22,5 +22,5 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 Select.displayName = 'Select';
 
 export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={cn('mb-1 block text-xs font-semibold text-slate-600', className)} {...props} />;
+  return <label className={cn('mb-1 block text-[11px] font-bold uppercase tracking-wide text-umng-blue', className)} {...props} />;
 }

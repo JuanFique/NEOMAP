@@ -18,15 +18,15 @@ interface Props {
 export function SpaceDetail({ espacio, routeActive, resumen, onTrace, onClearRoute, onClose }: Props) {
   return (
     <aside
-      className="pointer-events-auto absolute inset-x-0 bottom-0 z-30 max-h-[40dvh] overflow-y-auto rounded-t-2xl border border-slate-200 bg-white shadow-xl sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-4 sm:max-h-[calc(100dvh-6.5rem)] sm:w-[22rem] sm:rounded-2xl"
+      className="pointer-events-auto absolute inset-x-0 bottom-0 z-30 max-h-[40dvh] overflow-y-auto rounded-t-2xl border border-umng-blue/15 border-t-4 border-t-umng-yellow bg-white shadow-xl sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-[4.5rem] sm:max-h-[calc(100dvh-9.5rem)] sm:w-[22rem] sm:rounded-2xl"
       aria-label={`Detalle de ${espacio.nombre}`}
     >
       <div className="sticky top-0 z-10 flex items-start gap-3 bg-white px-4 pb-2 pt-4">
         <div className="min-w-0 flex-1">
           {espacio.codigo && (
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{espacio.codigo}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-umng-gold">{espacio.codigo}</p>
           )}
-          <h2 className="text-base font-bold leading-snug text-slate-900">{espacio.nombre}</h2>
+          <h2 className="text-lg font-bold leading-snug text-umng-blue">{espacio.nombre}</h2>
         </div>
         <button
           type="button"
@@ -52,7 +52,7 @@ export function SpaceDetail({ espacio, routeActive, resumen, onTrace, onClearRou
         </div>
 
         {resumen && (
-          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-slate-700 sm:hidden">
+          <p className="rounded-lg border border-umng-yellow bg-umng-cream px-3 py-1.5 text-[11px] font-semibold text-umng-blue sm:hidden">
             {resumen}
           </p>
         )}

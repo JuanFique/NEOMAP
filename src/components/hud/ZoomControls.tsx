@@ -7,9 +7,9 @@ interface Props {
 }
 
 export function ZoomControls({ onZoomIn, onZoomOut, onReset }: Props) {
-  const btn = 'flex h-9 w-9 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100';
+  const btn = 'flex h-9 w-9 items-center justify-center rounded-full text-umng-blue hover:bg-umng-ice';
   return (
-    <div className="flex items-center gap-0.5 rounded-full border border-slate-200 bg-white p-1 shadow-md">
+    <div className="flex items-center gap-0.5 rounded-full border border-umng-blue/15 bg-white p-1 shadow-md">
       <button type="button" className={btn} onClick={onZoomOut} aria-label="Alejar" title="Alejar">
         <Minus className="h-4 w-4" />
       </button>

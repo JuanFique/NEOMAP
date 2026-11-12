@@ -69,7 +69,13 @@ supabase/     schema.sql y seed.sql
 scripts/      Generador de seed.sql
 ```
 
-Todo el mapa se dibuja por código (`src/lib/iso.ts` + `src/data/campus.ts`); no hay archivos SVG externos. Edificios, zonas, pines y rutas comparten las mismas coordenadas de planta: `x` crece hacia el oriente y `y` hacia el sur, tal como en los planos de pisos.
+Todo el mapa se dibuja por código (`src/lib/iso.ts` + `src/data/campus.ts`); no hay archivos SVG externos. Edificios, zonas, pines y rutas comparten las mismas coordenadas de planta: `x` crece hacia el oriente y `y` hacia el sur.
+
+## Diseño
+
+- **Interfaz:** sigue la identidad de [umng.edu.co](https://umng.edu.co): azul `#043074`, amarillo `#FDC600`, tipografía Noto Sans y botones tipo píldora en mayúsculas. Los colores están en `tailwind.config.js` bajo `umng`.
+- **Mapa:** la implantación sigue la vista aérea de la sede. El complejo principal es una barra frontal (el Pasillo, con los accesos D, C y B), tres alas separadas por patios cubiertos y la barra oriental del Bloque E; el Bloque A es la torre al sur. Alrededor se dibujan la plazoleta, las canchas, el parqueadero y las vías como contexto. Los edificios usan ladrillo y cubiertas grises, sin ventanas ni detalle de fachada.
+- **Pisos:** `pisos.pdf` dibuja el complejo comprimido en sentido norte-sur. `pdfY()` en `src/data/campus.ts` lleva esas medidas a la proporción real, así que las zonas y el catálogo se pueden seguir digitando con las medidas del PDF.
 
 ## Alcance del catálogo
 

@@ -23,7 +23,7 @@ export function CategoryFilters({ active, onToggle, showClear, onClear }: Props)
             aria-pressed={on}
             onClick={() => onToggle(categoria)}
             className={cn(
-              'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition-colors',
+              'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide shadow-sm transition-colors',
               on ? meta.pillOn : meta.pillOff,
             )}
           >
@@ -40,7 +40,7 @@ export function CategoryFilters({ active, onToggle, showClear, onClear }: Props)
         <button
           type="button"
           onClick={onClear}
-          className="flex shrink-0 items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-umng-blue bg-umng-blue px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm hover:bg-umng-navy"
         >
           <FilterX className="h-3.5 w-3.5" aria-hidden />
           Limpiar filtros
