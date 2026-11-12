@@ -74,11 +74,11 @@ Todo el mapa se dibuja por código (`src/lib/iso.ts` + `src/data/campus.ts`); no
 ## Diseño
 
 - **Interfaz:** sigue la identidad de [umng.edu.co](https://umng.edu.co): azul `#043074`, amarillo `#FDC600`, tipografía Noto Sans y botones tipo píldora en mayúsculas. Los colores están en `tailwind.config.js` bajo `umng`.
-- **Mapa:** la implantación sigue la vista aérea de la sede. El complejo principal es una barra frontal (el Pasillo, con los accesos D, C y B), tres alas separadas por patios cubiertos y la barra oriental del Bloque E; el Bloque A es la torre al sur. Alrededor se dibujan la plazoleta, las canchas, el parqueadero y las vías como contexto. Los edificios usan ladrillo y cubiertas grises, sin ventanas ni detalle de fachada.
+- **Mapa:** la implantación sigue la vista aérea de la sede. El complejo principal es una barra frontal (el Pasillo, con los accesos D, C y B), tres alas separadas por patios cubiertos y la barra oriental del Bloque E; el Bloque A es la torre al sur. La Entrada Principal es la portería octogonal de cubierta verde sobre la avenida occidental, único paso del cerramiento perimetral. Alrededor se dibujan la plazoleta, las canchas, el parqueadero y las vías como contexto. Los edificios usan ladrillo y cubiertas grises, sin ventanas ni detalle de fachada.
 - **Pisos:** `pisos.pdf` dibuja el complejo comprimido en sentido norte-sur. `pdfY()` en `src/data/campus.ts` lleva esas medidas a la proporción real, así que las zonas y el catálogo se pueden seguir digitando con las medidas del PDF.
 
 ## Alcance del catálogo
 
 El catálogo semilla (54 espacios) sigue el Project Charter: laboratorios, aulas especiales, oficinas administrativas y servicios. Quedan fuera salones regulares, auditorios, salas de profesores, tiendas/cafeterías y zonas comunes; sus salas sí aparecen dibujadas y rotuladas en el corte de cada piso, pero sin pin ni ficha. Cualquier espacio se puede agregar después desde el panel.
 
-Las rutas son generales y fijas (Entrada Principal → Pasillo → escaleras → bloque y piso), sin navegación interior detallada ni geolocalización.
+Las rutas son generales y fijas (Entrada Principal → plazoleta → acceso del bloque → escaleras → piso), sin navegación interior detallada ni geolocalización.

@@ -13,6 +13,8 @@ import {
   ARBOLES_FONDO,
   ARBOLES_FRENTE,
   CANCHAS,
+  CERCA_FONDO,
+  CERCA_FRENTE,
   COMPLEJO,
   EDIFICIOS,
   ENTRADA,
@@ -89,6 +91,7 @@ interface Cam {
 const BOUNDS = (() => {
   const pts = [
     isoToScreen(-58, 11),
+    isoToScreen(-74, 84),
     isoToScreen(-66, 146),
     isoToScreen(17, 182),
     isoToScreen(124, 172),
@@ -204,6 +207,36 @@ function linea(a: Pt, b: Pt): { x1: number; y1: number; x2: number; y2: number }
   const p = isoToScreen(a[0], a[1], 0);
   const q = isoToScreen(b[0], b[1], 0);
   return { x1: p.x, y1: p.y, x2: q.x, y2: q.y };
+}
+
+/** Cerramiento: baranda sobre postes a lo largo de un trazado de planta. */
+function Cerca({ tramos }: { tramos: Pt[][] }) {
+  const alto = 1.7;
+  return (
+    <g pointerEvents="none" stroke="#5B6470" strokeLinecap="round" fill="none">
+      {tramos.map((tramo, i) => {
+        const postes: Pt[] = [];
+        for (let j = 0; j < tramo.length - 1; j++) {
+          const [ax, ay] = tramo[j];
+          const [bx, by] = tramo[j + 1];
+          const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / 5));
+          for (let k = 0; k <= n; k++) postes.push([ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n]);
+        }
+        return (
+          <g key={i}>
+            <polyline points={pointsAttr(tramo, 0)} stroke="#C9B9A6" strokeWidth={0.7} />
+            {postes.map(([x, y], k) => {
+              const p = isoToScreen(x, y, 0);
+              const q = isoToScreen(x, y, alto);
+              return <line key={k} x1={p.x} y1={p.y} x2={q.x} y2={q.y} strokeWidth={0.28} />;
+            })}
+            <polyline points={pointsAttr(tramo, alto)} strokeWidth={0.4} />
+            <polyline points={pointsAttr(tramo, alto * 0.55)} strokeWidth={0.22} opacity={0.7} />
+          </g>
+        );
+      })}
+    </g>
+  );
 }
 
 /** Superficies del entorno: vías, plazoletas, canchas y parqueadero. */
@@ -577,6 +610,7 @@ const CampusMap = forwardRef<CampusMapHandle, Props>(function CampusMap(
               </g>
             )}
 
+            <Cerca tramos={CERCA_FONDO} />
             {ARBOLES_FONDO.map(([x, y]) => (
               <Tree key={`${x}-${y}`} x={x} y={y} />
             ))}
@@ -635,6 +669,7 @@ const CampusMap = forwardRef<CampusMapHandle, Props>(function CampusMap(
                 (e) => <StairSymbol key={e.id} x={e.x} y={e.y} len={e.len} z={floorZ} />,
               )}
 
+            <Cerca tramos={CERCA_FRENTE} />
             {ARBOLES_FRENTE.map(([x, y]) => (
               <Tree key={`${x}-${y}`} x={x} y={y} />
             ))}

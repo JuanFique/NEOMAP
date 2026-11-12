@@ -7,7 +7,8 @@ import type { BloqueId, Piso } from '../lib/types';
  * El complejo principal es una barra frontal (el Pasillo) sobre la plazoleta
  * occidental, tres alas perpendiculares (D, C y B, de norte a sur) separadas por
  * patios cubiertos y la barra oriental (E) con su esquina achaflanada. El
- * Bloque A es la torre aislada al sur, junto a la Entrada Principal.
+ * Bloque A es la torre aislada al sur. La Entrada Principal es la portería
+ * octogonal de cubierta verde, sobre la avenida occidental.
  *
  * pisos.pdf dibuja el complejo comprimido en el eje norte-sur; `pdfY` lleva
  * sus medidas a la proporción real.
@@ -84,14 +85,44 @@ const HUELLA_E: Pt[] = aReal([
 ]);
 const HUELLA_A: Pt[] = rect(25, 137, 62, 160);
 
-/** Origen de todas las rutas, sobre la plazoleta frontal junto al Bloque A. */
-export const ENTRADA: Pt = [17, 172];
+/**
+ * Origen de todas las rutas: el acceso peatonal sobre la avenida occidental,
+ * que atraviesa la portería octogonal de cubierta verde.
+ */
+export const ENTRADA: Pt = [-69, 83.5];
+
+/** Eje de la plazoleta frontal, por donde se camina hacia los accesos de cada bloque. */
+export const PLAZA_FRONTAL_X = 17;
+
+/**
+ * Cerramiento perimetral. La portería octogonal interrumpe el tramo occidental
+ * y es el único paso.
+ */
+export const CERCA_FONDO: Pt[][] = [
+  [
+    [-66, 4],
+    [160, 4],
+  ],
+];
+export const CERCA_FRENTE: Pt[][] = [
+  [
+    [-66, 4],
+    [-66, 74],
+    [-63, 77],
+  ],
+  [
+    [-63, 90],
+    [-66, 93],
+    [-66, 181.5],
+    [160, 181.5],
+  ],
+];
 
 export const BLOQUES: Bloque[] = [
   {
     id: 'A',
     nombre: 'Bloque A',
-    descripcion: 'Torre junto a la Entrada Principal; incluye el espacio Scale Up A.',
+    descripcion: 'Torre al sur del complejo principal; incluye el espacio Scale Up A.',
     pisos: ['Piso 1', 'Piso 2'],
     zona: 'frontal',
     parts: [{ id: 'A', nombre: 'Bloque A', poly: HUELLA_A }],
@@ -529,7 +560,6 @@ export const ARBOLES_FRENTE: Pt[] = [
   // Andén occidental
   [-77, 20],
   [-77, 50],
-  [-77, 80],
   [-77, 110],
   [-77, 140],
   [-77, 170],

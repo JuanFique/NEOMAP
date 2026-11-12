@@ -1,4 +1,4 @@
-import { ENTRADA, pdfY } from '../data/campus';
+import { ENTRADA, PLAZA_FRONTAL_X, pdfY } from '../data/campus';
 import { FLOOR_H, type WorldPt } from './iso';
 import { PISO_LEVEL, type Espacio } from './types';
 
@@ -10,7 +10,7 @@ export interface Ruta {
 }
 
 /** Ejes de circulación, en coordenadas de planta. */
-const PLAZA_X = ENTRADA[0];
+const PLAZA_X = PLAZA_FRONTAL_X;
 const PASILLO_X = 42;
 const CORREDOR_Y = { D: pdfY(20), C: pdfY(40), B: pdfY(60) } as const;
 const CORREDOR_E_X = 102;
@@ -22,7 +22,7 @@ const ESCALERA_A_X = 28;
 
 /**
  * Ruta general y fija desde la Entrada Principal hasta el bloque y piso del
- * espacio (sin navegación interior detallada): avanza por la plazoleta frontal,
+ * espacio (sin navegación interior detallada): cruza la portería, avanza por la plazoleta frontal,
  * entra por el acceso del bloque, sube o baja por el núcleo de escaleras más
  * cercano y termina en el pin del espacio.
  */
@@ -39,6 +39,8 @@ export function buildRoute(espacio: Espacio): Ruta {
   };
 
   add(ENTRADA[0], ENTRADA[1], 0);
+  // Cruza la portería y la plazoleta occidental hasta la plazoleta frontal.
+  add(PLAZA_X, ENTRADA[1], 0);
 
   if (espacio.bloque_id === 'A') {
     add(PLAZA_X, CORREDOR_A_Y, 0);
